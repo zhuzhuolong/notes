@@ -42,3 +42,69 @@ promise包含几个关键词：
 * resolve
 * reject
 * then
+
+其中resolve和reject的代码在正常使用的时候是看不到的，但可以猜测他们两个都应该是回调函数，传递给了用户传入的函数，而then则挂在原型上
+
+```JavaScript
+
+calss Promise{
+    consturctor(exector){
+        function resolve(){
+
+        }
+        function reject(){
+
+        }
+        exector(resolve,reject)
+    }
+    then(){
+
+    }
+}
+
+```
+文档中提出，promise具备三种逻辑判断状态pending、fulfilled、rejected，三者不并处，同一时间只能存在一种状态
+
+pending向fulfilled或rejected单向流动。
+
+## 同步版本实现
+
+```JavaScript
+const PENDING = "pending";
+const FULFILLED = "fulfilled";
+const REJECTED = "rejected";
+class Promise{
+    constructor(exector){
+        let self = this;
+        self.status = PENDING;
+        self.value = undefined;
+        self.reason = undefined;
+        let resolve = (value)=>{
+            if(self.status === PENDING){
+                self.status = FULFILLED
+                self.value = value;
+            }
+        }
+        let reject = (reason)=>{
+            if(self.status === PENDING){
+                self.status = REJECTED;
+                self.reason = reason
+            }
+        }
+        try{
+            exector(resolve,reject)
+        }catch(e){
+            reject(e)
+        }
+    }
+    then(onFulfilled,onRejected){
+        let self = this;
+        if(self.status === FULFILLED){
+            onFulfilled(self.value);
+        }
+        if(self.status === REJECTED){
+            onRejected(self.reason);
+        }
+    }
+};
+```
